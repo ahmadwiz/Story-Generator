@@ -11,8 +11,15 @@ function App() {
   return (
     <>
     <div className='header'>
-      <h1 id='title'>Once Upon A Hack,</h1>
-     <Lights />
+      
+        <h1 id='title'>Once Upon A Hack,</h1>
+       
+      
+      <div className='header2'>
+        <Lights />
+         <img src="dog.png" width={200}></img>
+      </div>
+    
     </div>
      <hr />
      <br />
