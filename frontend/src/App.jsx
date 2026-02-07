@@ -9,8 +9,7 @@ function App() {
 
   return (
     <>
-     <h1>Welcome to the App</h1>
-     <hr />
+     <h1>Once upon a time,</h1>
      <Prompt />
 
     </>

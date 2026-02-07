@@ -7,7 +7,7 @@ from client import generate_response
 def get_story_snippet():
     word = request.args.get("word")
     story = request.args.get("story")
-    return jsonify({"response": generate_response(story, word)})
+    return jsonify(generate_response(story, word))
 
 
 

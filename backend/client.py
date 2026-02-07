@@ -10,12 +10,13 @@ client = OpenAI(
 )
 
 def generate_response(story, word):
-    if story == "":
-        story = "Once upon a time,"
-
+    print(story)
     response = client.responses.create(
         model="openai/gpt-4o-mini",
-        input=f"Given the following story snippet: {story}, respond with exactly one sentence following the story that relates to the word: {word}."
+        input = f"""
+        Given the following story snippet as context: {story == "" and "Once upon a time" or story}, 
+        Continue the story with exactly one sentence following the story and relating to the word: {word},
+        """
     )
 
-    return story + " " + response.output_text
+    return {"oldStory": story, "newStory": response.output_text, "fullStory": story + " " + response.output_text}
