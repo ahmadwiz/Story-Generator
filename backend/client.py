@@ -1,42 +1,56 @@
-from openai import OpenAI
 import os
 import re
 import base64
 import requests
 from typing import Optional
-from dotenv import load_dotenv
 
-
-load_dotenv()
-
-client = OpenAI(
-    api_key=os.getenv("OPENROUTER_API_KEY"),
-    base_url="https://openrouter.ai/api/v1",
-    organization=None
-)
-
-
-
-# OpenRouter image model (Gemini 2.5 Flash Image)
+# OpenRouter config
+OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_BASE = "https://openrouter.ai/api/v1"
 IMAGE_MODEL = "google/gemini-2.5-flash-image"
 
+# ElevenLabs TTS config
+ELEVENLABS_KEY = os.getenv("ELEVENLABS_API_KEY")
+ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
-def generate_response(story, word):
-    """Returns (full_story, new_sentence) for continuation."""
-    if story == "" or story is None:
-        response = client.responses.create(
-            model="openai/gpt-4o-mini",
-            input=f"Start a short story with exactly one sentence that relates to the word: {word}. Do not begin with 'Once upon a time' or similar."
-        )
-    else:
-        response = client.responses.create(
-            model="openai/gpt-4o-mini",
-            input=f"Given the following story snippet: {story}, respond with exactly one sentence following the story that relates to the word: {word}."
+
+def generate_response(story: str, word: str) -> tuple[str, str]:
+    """
+    Generate a one-sentence story continuation using OpenRouter.
+    Returns (full_story, new_sentence).
+    """
+    try:
+        if not OPENROUTER_KEY:
+            raise ValueError("OPENROUTER_API_KEY not set")
+
+        prompt = (
+            f"Start a short story with exactly one sentence that relates to the word: {word}. "
+            f"Do not begin with 'Once upon a time' or similar."
+            if not story else
+            f"Given the following story snippet: {story}, respond with exactly one sentence "
+            f"following the story that relates to the word: {word}."
         )
 
-    new_sentence = response.output_text.strip()
-    full_story = (story + " " + new_sentence).strip() if story else new_sentence
-    return full_story, new_sentence
+        resp = requests.post(
+            f"{OPENROUTER_BASE}/responses",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={"model": "openai/gpt-4o-mini", "input": prompt},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        # OpenRouter returns output_text inside the response
+        new_sentence = data.get("output_text", "").strip()
+        full_story = (story + " " + new_sentence).strip() if story else new_sentence
+        return full_story, new_sentence
+
+    except Exception as e:
+        print("Error generating response:", e)
+        return story or "", "Sorry, I couldn't generate a sentence."
 
 
 def highlight_word_in_sentence(sentence: str, word: str) -> str:
@@ -50,21 +64,20 @@ def highlight_word_in_sentence(sentence: str, word: str) -> str:
 
 
 def generate_image_for_sentence(sentence: str) -> Optional[str]:
-    """Generate an image for a story sentence using OpenRouter. Returns base64 data URL or None."""
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    if not api_key:
+    """Generate an image for a story sentence using OpenRouter. Returns image URL or None."""
+    if not OPENROUTER_KEY or not sentence.strip():
         return None
 
-    prompt = (
-        f"Generate a single illustration for this moment in a story. "
-        f"Style: storybook or digital art, clear and readable. Scene: {sentence}"
-    )
-
     try:
+        prompt = (
+            f"Generate a single illustration for this moment in a story. "
+            f"Style: storybook or digital art, clear and readable. Scene: {sentence}"
+        )
+
         resp = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
+            f"{OPENROUTER_BASE}/chat/completions",
             headers={
-                "Authorization": f"Bearer {api_key}",
+                "Authorization": f"Bearer {OPENROUTER_KEY}",
                 "Content-Type": "application/json",
             },
             json={
@@ -78,47 +91,41 @@ def generate_image_for_sentence(sentence: str) -> Optional[str]:
         resp.raise_for_status()
         data = resp.json()
 
-        choices = data.get("choices") or []
+        choices = data.get("choices", [])
         if not choices:
             return None
-        message = choices[0].get("message") or {}
-        images = message.get("images") or []
+        images = choices[0].get("message", {}).get("images", [])
         if not images:
             return None
 
-        first = images[0]
-        url_obj = first.get("image_url") or first.get("imageUrl") or {}
-        return url_obj.get("url")
-    except Exception:
+        # Return the URL of the first image
+        return images[0].get("image_url") or images[0].get("imageUrl")
+
+    except Exception as e:
+        print("Error generating image:", e)
         return None
-
-
-# ElevenLabs TTS: default voice Rachel; set ELEVENLABS_VOICE_ID to override
-ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
 
 def text_to_speech(sentence: str) -> Optional[str]:
     """Convert sentence to speech via ElevenLabs. Returns base64 data URL (audio/mpeg) or None."""
-    api_key = os.getenv("ELEVENLABS_API_KEY")
-    if not api_key or not sentence.strip():
+    if not ELEVENLABS_KEY or not sentence.strip():
         return None
 
     try:
         resp = requests.post(
             f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}",
             headers={
-                "xi-api-key": api_key,
+                "xi-api-key": ELEVENLABS_KEY,
                 "Content-Type": "application/json",
                 "Accept": "audio/mpeg",
             },
-            json={
-                "text": sentence.strip(),
-                "model_id": "eleven_multilingual_v2",
-            },
+            json={"text": sentence.strip(), "model_id": "eleven_multilingual_v2"},
             timeout=30,
         )
         resp.raise_for_status()
-        b64 = base64.b64encode(resp.content).decode("utf-8")
-        return f"data:audio/mpeg;base64,{b64}"
-    except Exception:
+        b64_audio = base64.b64encode(resp.content).decode("utf-8")
+        return f"data:audio/mpeg;base64,{b64_audio}"
+
+    except Exception as e:
+        print("Error generating TTS:", e)
         return None
