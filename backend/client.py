@@ -6,12 +6,16 @@ import requests
 from typing import Optional
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 client = OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY"),
     base_url="https://openrouter.ai/api/v1",
+    organization=None
 )
+
+
 
 # OpenRouter image model (Gemini 2.5 Flash Image)
 IMAGE_MODEL = "google/gemini-2.5-flash-image"
