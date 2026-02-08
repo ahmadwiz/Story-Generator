@@ -1,10 +1,9 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useTypewriter } from "./TypeWriter";
 import List from "./List";
 
 const IMAGE_POLL_INTERVAL_MS = 1500;
 const IMAGE_POLL_MAX_ATTEMPTS = 45; // ~67s max wait
-let playingAudio = false;
 
 const SIMPLE_WORDS = [
   "big", "red", "sun", "dog", "cat", "hat", "run", "sit", "ball", "box", "car",
@@ -30,29 +29,36 @@ const Prompt = () => {
   const [wordsUsed, setWordsUsed] = useState([]);
   const [images, setImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [voiceType, setVoiceType] = useState("man")
+  const [voiceType, setVoiceType] = useState(() => {
+    return localStorage.getItem("selectedVoice") || "man";
+  });
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isGeneratingText, setIsGeneratingText] = useState(false);
   const pollAttemptsRef = useRef(0);
 
+  // Save voice selection to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("selectedVoice", voiceType);
+  }, [voiceType]);
 
-  const playCurrentAudio = async () => {
-      if (playingAudio) return;
-
+  const playCurrentAudio = async (textToPlay) => {
+      if (isPlayingAudio) return;
 
       try {
-         playingAudio = true;
+        setIsPlayingAudio(true);
         const response = await fetch(
-        `http://localhost:5000/audio?text=${encodeURIComponent(story.fullStory || "")}&voice=${voiceType}`
-      );
-      const data = await response.json();
-
-      
+          `https://onceuponahack.onrender.com/audio?text=${encodeURIComponent(textToPlay || "")}&voice=${voiceType}`
+        );
+        const data = await response.json();
 
         const audio = new Audio(data.audio);
         audio.play().catch(() => {});
         audio.onended = () => {
-          playingAudio = false;
+          setIsPlayingAudio(false);
         }
-      } catch (_) {playingAudio = false;}
+      } catch (_) {
+        setIsPlayingAudio(false);
+      }
     
   };
 
@@ -79,8 +85,8 @@ const Prompt = () => {
       setWord("");
     }
     setShowInput(state);
-    if (state === true && story.audio) {
-      playCurrentAudio(story.audio)
+    if (state === true && story.newStory) {
+      playCurrentAudio(story.newStory);
     }
   };
 
@@ -90,8 +96,9 @@ const Prompt = () => {
 
   const fetchStory = async (wordToAdd) => {
     try {
+      setIsGeneratingText(true);
       const response = await fetch(
-        `http://localhost:5000/story?story=${encodeURIComponent(story.fullStory || "")}&word=${encodeURIComponent(wordToAdd)}&voice=${voiceType}`
+        `https://onceuponahack.onrender.com/story?story=${encodeURIComponent(story.fullStory || "")}&word=${encodeURIComponent(wordToAdd)}&voice=${voiceType}`
       );
       const data = await response.json();
 
@@ -110,6 +117,8 @@ const Prompt = () => {
       }
     } catch (error) {
       console.error("Error fetching story:", error);
+    } finally {
+      setIsGeneratingText(false);
     }
   };
 
@@ -118,7 +127,7 @@ const Prompt = () => {
       if (pollAttemptsRef.current >= IMAGE_POLL_MAX_ATTEMPTS) return;
       pollAttemptsRef.current += 1;
       fetch(
-        `http://localhost:5000/image?sentence=${encodeURIComponent(sentence)}`
+        `https://onceuponahack.onrender.com/image?sentence=${encodeURIComponent(sentence)}`
       )
         .then((r) => r.json())
         .then((data) => {
@@ -221,13 +230,14 @@ const Prompt = () => {
               onKeyDown={handleEnter}
               maxLength={15}
               size={10}
-              placeholder="Enter word"
-              disabled={word === "Loading"}
+              placeholder={isGeneratingText ? "Generating..." : "Enter word"}
+              disabled={word === "Loading" || isGeneratingText}
             />
             {showInput && word !== "Loading" && (
               <button
                 type="button"
                 onClick={fetchWord}
+                disabled={isGeneratingText}
                 className="dice-btn-inline"
                 aria-label="Random word"
               >
@@ -252,18 +262,19 @@ const Prompt = () => {
         <div className="audio-control">
           <button
             type="button"
-            onClick={() => {playCurrentAudio(story.fullAudio)}}
+            onClick={() => {playCurrentAudio(story.fullStory)}}
             className="play-audio-btn"
+            disabled={isPlayingAudio || isGeneratingText}
             aria-label="Play sentence"
           >
-            🔊 Play Full
+            {isPlayingAudio ? "🔊 Playing..." : "🔊 Play Full"}
           </button>
         </div>
       )}
 
       {showInput && (
         <div className="dropdown-control">
-        <select id="voice-selector" onChange={handleDropdown}>
+        <select id="voice-selector" value={voiceType} onChange={handleDropdown}>
             <option value="man">Man</option>
             <option value="woman">Woman</option>
             <option value="passionate">Passionate</option>

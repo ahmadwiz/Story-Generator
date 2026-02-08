@@ -8,3 +8,9 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+
+const BACKEND_URL = "https://onceuponahack.onrender.com";
+
+fetch(`${BACKEND_URL}/story?word=magic&story=Once%20upon%20a%20time`)
+  .then(res => res.json())
+  .then(data => console.log(data));
