@@ -23,13 +23,14 @@ def _generate_image_background(sentence: str) -> None:
 def get_story_snippet():
     word = request.args.get("word") or ""
     story = request.args.get("story") or ""
+    voice = request.args.get("voice") or ""
 
     # Text first (don't wait for image)
     full_story, new_sentence = generate_response(story, word)
     new_story_html = highlight_word_in_sentence(new_sentence, word)
     old_story = story
-    audio_data_url = text_to_speech(new_sentence)
-    full_audio_data_url = text_to_speech(full_story)
+    audio_data_url = text_to_speech(new_sentence, voice)
+    full_audio_data_url = text_to_speech(full_story, voice)
 
     # Start image generation in background; return immediately without image
     thread = threading.Thread(target=_generate_image_background, args=(new_sentence,))
@@ -54,6 +55,11 @@ def get_image():
         url = image_cache.get(sentence)
     return jsonify({"image": url})
 
+@app.route("/audio", methods=["GET"])
+def get_audio():
+    text = request.args.get("text") or ""
+    voiceType = request.args.get("voice") or ""
+    return jsonify({"audio": text_to_speech(text, voiceType)})
 
 if __name__ == "__main__":
     app.run(debug=True)

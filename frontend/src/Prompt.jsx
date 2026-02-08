@@ -30,20 +30,30 @@ const Prompt = () => {
   const [wordsUsed, setWordsUsed] = useState([]);
   const [images, setImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [voiceType, setVoiceType] = useState("man")
   const pollAttemptsRef = useRef(0);
 
 
-  const playCurrentAudio = (aud) => {
-    if (aud && !playingAudio) {
+  const playCurrentAudio = async () => {
+      if (playingAudio) return;
+
+
       try {
-        const audio = new Audio(aud);
+         playingAudio = true;
+        const response = await fetch(
+        `http://localhost:5000/audio?text=${encodeURIComponent(story.fullStory || "")}&voice=${voiceType}`
+      );
+      const data = await response.json();
+
+      
+
+        const audio = new Audio(data.audio);
         audio.play().catch(() => {});
-        playingAudio = true;
         audio.onended = () => {
           playingAudio = false;
         }
-      } catch (_) {}
-    }
+      } catch (_) {playingAudio = false;}
+    
   };
 
   const addWordToList = (wordToAdd) => {
@@ -74,10 +84,14 @@ const Prompt = () => {
     }
   };
 
+  const handleDropdown = (e) => {
+    setVoiceType(e.target.value)
+  }
+
   const fetchStory = async (wordToAdd) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/story?story=${encodeURIComponent(story.fullStory || "")}&word=${encodeURIComponent(wordToAdd)}`
+        `http://localhost:5000/story?story=${encodeURIComponent(story.fullStory || "")}&word=${encodeURIComponent(wordToAdd)}&voice=${voiceType}`
       );
       const data = await response.json();
 
@@ -234,7 +248,7 @@ const Prompt = () => {
         )}
       </div>
 
-      {story.audio && (
+      {story.fullAudio && (
         <div className="audio-control">
           <button
             type="button"
@@ -246,6 +260,20 @@ const Prompt = () => {
           </button>
         </div>
       )}
+
+      {showInput && (
+        <div className="dropdown-control">
+        <select id="voice-selector" onChange={handleDropdown}>
+            <option value="man">Man</option>
+            <option value="woman">Woman</option>
+            <option value="passionate">Passionate</option>
+            <option value="witch">Witch</option>
+        </select>
+      </div>
+      )}
+
+      
+       
 
       <div className="story-image-section">
         {hasImages && (

@@ -17,6 +17,13 @@ client = OpenAI(
 IMAGE_MODEL = "google/gemini-2.5-flash-image"
 
 
+VoiceKeys = {
+    "man": os.getenv("ELEVENLABS_VOICE_ID_man"),
+    "woman": os.getenv("ELEVENLABS_VOICE_ID_woman"),
+    "passionate": os.getenv("ELEVENLABS_VOICE_ID_passionate"),
+    "witch": os.getenv("ELEVENLABS_VOICE_ID_witch"),
+}
+
 def generate_response(story, word):
     """Returns (full_story, new_sentence) for continuation."""
     if story == "" or story is None:
@@ -93,18 +100,20 @@ def generate_image_for_sentence(sentence: str) -> Optional[str]:
 
 
 # ElevenLabs TTS: default voice Rachel; set ELEVENLABS_VOICE_ID to override
-ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
+# ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
 
-def text_to_speech(sentence: str) -> Optional[str]:
+def text_to_speech(sentence: str, voiceType) -> Optional[str]:
     """Convert sentence to speech via ElevenLabs. Returns base64 data URL (audio/mpeg) or None."""
     api_key = os.getenv("ELEVENLABS_API_KEY")
     if not api_key or not sentence.strip():
         return None
-
+    voiceId = VoiceKeys.get(voiceType)
+    
     try:
         resp = requests.post(
-            f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}",
+           
+            "https://api.elevenlabs.io/v1/text-to-speech/" + voiceId,
             headers={
                 "xi-api-key": api_key,
                 "Content-Type": "application/json",

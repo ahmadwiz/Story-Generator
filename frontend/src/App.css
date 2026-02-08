@@ -218,6 +218,12 @@ input:focus {
     margin: 0.5rem 0 1rem;
 }
 
+.dropdown-control {
+    display: flex;
+    justify-content: center;
+    margin: 0.5rem 0 1rem;
+}
+
 .play-audio-btn {
     background: rgba(255, 255, 255, 0.2);
     color: wheat;
@@ -226,6 +232,20 @@ input:focus {
     padding: 0.4rem 0.8rem;
     cursor: pointer;
     font-size: 0.95rem;
+}
+
+#voice-selector {
+    background: rgba(255, 255, 255, 0.2);
+    color: rgb(255, 255, 255);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+#voice-selector option {
+    color: black;
 }
 
 .play-audio-btn:hover {
