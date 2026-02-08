@@ -22,14 +22,14 @@ def generate_response(story, word):
     if story == "" or story is None:
         response = client.responses.create(
             model="openai/gpt-4o-mini",
-            input=f"Start a short story with exactly one sentence that relates to the word: {word}. Do not begin with 'Once upon a time' or similar."
+            input=f"Start a short story with exactly one sentence that relates to the word: {word}, and the theme of magic. Do not begin with 'Once upon a time' or similar."
         )
         new_sentence = response.output_text.strip()
         full_story = highlight_word_in_sentence(new_sentence, word).strip()
     else:
         response = client.responses.create(
             model="openai/gpt-4o-mini",
-            input=f"Given the following story snippet: {story}, respond with exactly one sentence following the story that relates to the word: {word}."
+            input=f"Given the following story snippet: {story}, respond with exactly one sentence following the story that relates to the word: {word}, and the theme of magic."
         )
         new_sentence = response.output_text.strip()
         # Highlight the new sentence and append it to the existing HTML story

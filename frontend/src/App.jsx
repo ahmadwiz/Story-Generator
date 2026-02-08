@@ -12,10 +12,13 @@ function App() {
     <>
      <Lights />
     <div className='header'>
-      
-        <h1 id='title'>Once Upon A Hack,</h1>
+        <div>
+          <h1 className='title'>Once Upon A Hack, </h1>   
+          <h4 id='subtitle'>Tells a tale of epic proportions with but a single word🪄</h4>
+        </div>
+        
+        
        <img id="dog" src="dog.png" width={200}></img>
-    
     </div>
      <hr />
      <br />

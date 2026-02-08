@@ -4,6 +4,7 @@ import List from "./List";
 
 const IMAGE_POLL_INTERVAL_MS = 1500;
 const IMAGE_POLL_MAX_ATTEMPTS = 45; // ~67s max wait
+let playingAudio = false;
 
 const SIMPLE_WORDS = [
   "big", "red", "sun", "dog", "cat", "hat", "run", "sit", "ball", "box", "car",
@@ -23,12 +24,27 @@ const Prompt = () => {
     newStory: "",
     fullStory: "",
     audio: null,
+    fullAudio: null,
   });
   const [showInput, setShowInput] = useState(true);
   const [wordsUsed, setWordsUsed] = useState([]);
   const [images, setImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const pollAttemptsRef = useRef(0);
+
+
+  const playCurrentAudio = (aud) => {
+    if (aud && !playingAudio) {
+      try {
+        const audio = new Audio(aud);
+        audio.play().catch(() => {});
+        playingAudio = true;
+        audio.onended = () => {
+          playingAudio = false;
+        }
+      } catch (_) {}
+    }
+  };
 
   const addWordToList = (wordToAdd) => {
     setWordsUsed((prev) => {
@@ -54,10 +70,7 @@ const Prompt = () => {
     }
     setShowInput(state);
     if (state === true && story.audio) {
-      try {
-        const audio = new Audio(story.audio);
-        audio.play().catch(() => {});
-      } catch (_) {}
+      playCurrentAudio(story.audio)
     }
   };
 
@@ -74,6 +87,7 @@ const Prompt = () => {
         newStory: data.newStory,
         fullStory: data.fullStory,
         audio: data.audio,
+        fullAudio: data.fullAudio
       });
 
       if (data.sentenceForImage) {
@@ -153,14 +167,7 @@ const Prompt = () => {
     }
   };
 
-  const playCurrentAudio = () => {
-    if (story.audio) {
-      try {
-        const audio = new Audio(story.audio);
-        audio.play().catch(() => {});
-      } catch (_) {}
-    }
-  };
+
 
   const typewriter = useTypewriter(story.newStory + " ", textBoxVisible);
   const hasImages = images.length > 0;
@@ -231,11 +238,11 @@ const Prompt = () => {
         <div className="audio-control">
           <button
             type="button"
-            onClick={playCurrentAudio}
+            onClick={() => {playCurrentAudio(story.fullAudio)}}
             className="play-audio-btn"
             aria-label="Play sentence"
           >
-            🔊 Play sentence
+            🔊 Play Full
           </button>
         </div>
       )}

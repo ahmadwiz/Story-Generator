@@ -29,6 +29,7 @@ def get_story_snippet():
     new_story_html = highlight_word_in_sentence(new_sentence, word)
     old_story = story
     audio_data_url = text_to_speech(new_sentence)
+    full_audio_data_url = text_to_speech(full_story)
 
     # Start image generation in background; return immediately without image
     thread = threading.Thread(target=_generate_image_background, args=(new_sentence,))
@@ -40,6 +41,7 @@ def get_story_snippet():
         "newStory": new_story_html,
         "fullStory": full_story,
         "audio": audio_data_url,
+        "fullAudio": full_audio_data_url,
         "sentenceForImage": new_sentence,
     })
 
