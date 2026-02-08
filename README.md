@@ -1,12 +1,59 @@
-Team Members (4): Ahmad Ibrahim, Jonathan Okushi, Jonathan Shekoni, Uche Onwukeme. 
-Purpose: The purpose of this project was to provide users with a fun game-like application where they can express their creativity with clever wordplay and compelling storytelling. 
-Tools Utilized:
-    React (Front End), Vite (Front End), Figma (Front End), Python (Back End), Flask (Back End), AI as a support role (Front & Back End), Vercel (Hosting), Render (Hosting)
-API's: OpenAI, Gemini, Herokuapp, ElevenLabs
-Problems Encountered:
-Problem: Experienced issues relating to resizing images on Figma. 
-Solution: Instead of trying to make our front end design on Figma, we instead used Figma's other stylistic components to serve as a guide for how we could implement something similar using HTML and CSS 
-Problem: Waiting for Gemini to generate the images for our web application caused the entire process to hang and lag.
-Solution: We used parallel processing to generate and wait for the images, so that the rest of our applications functionality could run smoothly. 
-Problem: One of our biggest problems was figuring out a way to host our website, specifically under the .tech domain. 
-Solution: We realized for this issue, we were going to need the help of our hackathon expert organizers, and they provided us with the proper guidance advising us to utilize the Render and Vercel Platforms. 
+## 👥 Team Members (4)
+- Ahmad Ibrahim  
+- Jonathan Okushi  
+- Jonathan Shekoni  
+- Uche Onwukeme  
+
+---
+
+## 🎯 Purpose
+The purpose of this project was to provide users with a fun, game-like application where they can express their creativity through clever wordplay and compelling storytelling.
+
+---
+
+## 🛠️ Tools Utilized
+
+### Front End
+- React  
+- Vite  
+- Figma  
+
+### Back End
+- Python  
+- Flask  
+
+### Additional Tools
+- AI (support role for both Front & Back End)
+- Vercel (Hosting)
+- Render (Hosting)
+
+---
+
+## 🔌 APIs Used
+- OpenAI  
+- Gemini  
+- Herokuapp  
+- ElevenLabs  
+
+---
+
+## ⚠️ Problems Encountered & Solutions
+
+### 🖼️ Problem 1: Figma Image Resizing Issues  
+**Problem:** We experienced difficulties when trying to properly resize images in Figma for our front-end design.  
+
+**Solution:** Instead of relying heavily on Figma for the full front-end layout, we used its stylistic components as a design reference and implemented similar designs directly using HTML and CSS.
+
+---
+
+### ⏳ Problem 2: Image Generation Lag  
+**Problem:** Waiting for Gemini to generate images caused the entire application to hang and lag.  
+
+**Solution:** We implemented parallel processing to generate and wait for images independently, allowing the rest of the application’s functionality to continue running smoothly.
+
+---
+
+### 🌐 Problem 3: Hosting Under a .tech Domain  
+**Problem:** One of our biggest challenges was figuring out how to host our website under a `.tech` domain.  
+
+**Solution:** With guidance from our hackathon organizers, we learned how to properly deploy our application using the Render and Vercel platforms.
